@@ -104,9 +104,9 @@ print(model.summary())
 #########滾動視窗 out-of-sample forecast#########
 rolling_predictions = []
 rolling_actual = []
-rolling_dates = [] # 準備儲存預測結果
+rolling_dates = [] # 準備儲存預測報酬結果
 
-min_obs = 36  # 至少 3 年訓練資料，因為我是月資料
+min_obs = 36 # 至少 3 年訓練資料，因為我是月資料
 
 for i in range(min_obs, len(df)-1):  #滾動 windows，並預測下一期
     train_df = df.iloc[:i].dropna(subset=['PLS_Index_LAG', 'RETURN_RETURN'])
@@ -131,7 +131,7 @@ rolling_df = pd.DataFrame({
     'Date': rolling_dates,
     'Predicted_Return': rolling_predictions,
     'Actual_Return': rolling_actual
-})
+}) #用pls預測的股價報酬與實際做比較
 
 ##畫圖##
 plt.figure(figsize=(12, 5))
@@ -143,3 +143,14 @@ plt.title('Rolling Out-of-Sample Forecast: Return')
 plt.legend()
 plt.tight_layout()
 plt.show()
+
+##低估與高估情況##
+rolling_df['Diff'] = rolling_df['Actual_Return'] - rolling_df['Predicted_Return']
+
+num_positive = (rolling_df['Diff'] > 0).sum()  # 差異 > 0，表示低估
+num_negative = (rolling_df['Diff'] < 0).sum()  # 差異 < 0，表示高估
+num_zero = (rolling_df['Diff'] == 0).sum()     # 剛好預測到位
+
+print(f"正 (低估) 的數量: {num_positive}")
+print(f"負 (高估) 的數量: {num_negative}")
+print(f"無差異 的數量: {num_zero}")
